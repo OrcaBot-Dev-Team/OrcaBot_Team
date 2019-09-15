@@ -11,4 +11,14 @@
     <PackageReference Include="Discord.Net" Version="2.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\BotCore_Team\BotCore\BotCore\BotCoreNET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="JSON_Serialization">
+      <HintPath>..\..\JSON Parser\JSON_Serialization.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
