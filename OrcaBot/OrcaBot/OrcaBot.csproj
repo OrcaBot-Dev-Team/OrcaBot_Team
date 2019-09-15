@@ -8,15 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="libs\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BotCore\BotCore\BotCore\BotCoreNET.csproj" />
+    <ProjectReference Include="..\..\..\BotCore\BotCore\BotCore\BotCoreNET.csproj" />
     <ProjectReference Include="C:\Users\Joseph\source\repos\JSON_Serialization\JSON_Serialization\JSON_Serialization\JSON_Serialization.csproj" />
   </ItemGroup>
 
