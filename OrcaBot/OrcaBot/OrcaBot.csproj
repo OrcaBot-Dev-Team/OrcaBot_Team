@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BotCore\BotCore\BotCore\BotCoreNET.csproj" />
-    <ProjectReference Include="C:\Users\Joseph\source\repos\JSON_Serialization\JSON_Serialization\JSON_Serialization\JSON_Serialization.csproj" />
   </ItemGroup>
 
 </Project>

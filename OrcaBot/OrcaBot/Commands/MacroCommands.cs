@@ -36,13 +36,16 @@ namespace OrcaBot.Commands
 
         protected override async Task<ArgumentParseResult> ParseArgumentsGuildAsync(IGuildCommandContext context)
         {
-            MacroIdentifier = context.Argument;
+            MacroIdentifier = context.Arguments.First;
 
-            GuildBotVarCollection guildVars = BotVarManager.GetGuildBotVarCollection(context.Guild.Id);
+            if (!StoredMessagesService.IsValidMacroName(MacroIdentifier))
+            {
+                return new ArgumentParseResult(Arguments[0], "Not a valid macro name!");
+            }
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            if (context.Argument.ToLower() == "remove")
+            if (context.Arguments.First.ToLower() == "remove")
             {
                 Delete = true;
                 SelectedMacro = null;
@@ -52,9 +55,9 @@ namespace OrcaBot.Commands
             {
                 Delete = false;
                 JSONContainer json;
-                if (context.Argument.StartsWith("http"))
+                if (context.Arguments.First.StartsWith("http"))
                 {
-                    string[] argSections = context.Argument.Split("/", StringSplitOptions.RemoveEmptyEntries);
+                    string[] argSections = context.Arguments.First.Split("/", StringSplitOptions.RemoveEmptyEntries);
                     if (argSections.Length < 3)
                     {
                         return new ArgumentParseResult(Arguments[1]);
@@ -85,7 +88,7 @@ namespace OrcaBot.Commands
                     }
 
                     EmbedHelper.GetJSONFromUserMessage(message, out json);
-                    SelectedMacro = new Macro(Identifier, json);
+                    SelectedMacro = new Macro(MacroIdentifier, json);
                 }
                 else
                 {
@@ -95,7 +98,7 @@ namespace OrcaBot.Commands
                         return new ArgumentParseResult(Arguments[1]);
                     }
 
-                    SelectedMacro = new Macro(Identifier, json);
+                    SelectedMacro = new Macro(MacroIdentifier, json);
                     if (!SelectedMacro.Build(out _, out _, out error))
                     {
                         return new ArgumentParseResult(Arguments[1], error);

@@ -33,7 +33,7 @@ namespace OrcaBot.Commands
 
         protected override async Task<ArgumentParseResult> ParseArgumentsGuildAsync(IGuildCommandContext context)
         {
-            string[] argSections = context.Argument.Split("/", StringSplitOptions.RemoveEmptyEntries);
+            string[] argSections = context.Arguments.First.Split("/", StringSplitOptions.RemoveEmptyEntries);
             if (argSections.Length < 3)
             {
                 return new ArgumentParseResult(Arguments[0]);
@@ -68,8 +68,15 @@ namespace OrcaBot.Commands
             }
 
             NewQuote = new Quote(guildId, message);
-            GuildBotVarCollection guildConfig = BotVarManager.GetGuildBotVarCollection(guildId);
-            guildConfig.SetBotVar(NewQuote.GetBotVar());
+
+            StoredMessagesService messagesService = StoredMessagesService.GetMessagesService(context.Guild.Id);
+
+            if (messagesService.HasQuote(message.Id))
+            {
+                return new ArgumentParseResult(Arguments[0], "Message already stored as quote!");
+            }
+
+            messagesService.AddQuote(NewQuote);
 
             return ArgumentParseResult.SuccessfullParse;
         }
@@ -101,41 +108,34 @@ namespace OrcaBot.Commands
 
         protected override Task<ArgumentParseResult> ParseArgumentsGuildAsync(IGuildCommandContext context)
         {
-            GuildBotVarCollection guildConfig = BotVarManager.GetGuildBotVarCollection(context.Guild.Id);
-            if (!guildConfig.TryGetBotVar("nextquoteid", out ulong quoteCount))
+            StoredMessagesService messagesService = StoredMessagesService.GetMessagesService(context.Guild.Id);
+
+            if (messagesService.QuoteCount == 0)
             {
                 return Task.FromResult(new ArgumentParseResult("No quotes saved for this guild!"));
             }
 
-            ulong quoteId;
-            if (context.ArgumentCount > 0)
+            if (context.Arguments.TotalCount == 0)
             {
-                if (!ulong.TryParse(context.Argument, out quoteId))
-                {
-                    return Task.FromResult(new ArgumentParseResult(Arguments[0]));
-                }
+                SelectedQuote = messagesService.GetRandomQuote();
+                return Task.FromResult(ArgumentParseResult.DefaultNoArguments);
+            }
 
-                if (quoteId >= quoteCount)
-                {
-                    return Task.FromResult(new ArgumentParseResult(Arguments[0], $"Out of range! Only `{quoteCount}` quotes stored!"));
-                }
+            if (!int.TryParse(context.Arguments.First, out int quoteId))
+            {
+                return Task.FromResult(new ArgumentParseResult(Arguments[0]));
+            }
 
-            }
-            else
+            if (quoteId < 0)
             {
-                quoteId = (ulong)Macros.Rand.Next((int)quoteCount);
+                return Task.FromResult(new ArgumentParseResult(Arguments[0]));
             }
-            if (!guildConfig.TryGetBotVar(Quote.GetBotVarId(quoteId), out SelectedQuote))
+
+            if (!messagesService.TryGetQuote(quoteId, out SelectedQuote))
             {
-                if (context.ArgumentCount > 0)
-                {
-                    return Task.FromResult(new ArgumentParseResult($"Internal Error: Could not locate randomly selected Quote `{quoteId}`!"));
-                }
-                else
-                {
-                    return Task.FromResult(new ArgumentParseResult($"Could not locate a Quote with Id `{quoteId}`!"));
-                }
+                return Task.FromResult(new ArgumentParseResult(Arguments[0], $"Couldn't find a quote with Id `{quoteId}`!"));
             }
+
             return Task.FromResult(ArgumentParseResult.SuccessfullParse);
         }
 

@@ -59,16 +59,6 @@ namespace OrcaBot
             return result;
         }
 
-        public static string GetBotVarId(ulong quoteId)
-        {
-            return $"quote.{quoteId}";
-        }
-
-        public BotVar GetBotVar()
-        {
-            return new BotVar(GetBotVarId(QuoteId), this);
-        }
-
         public Quote(ulong guildId, IMessage msg)
         {
             StoredMessagesService guildMessageService = StoredMessagesService.GetMessagesService(guildId);
@@ -104,35 +94,6 @@ namespace OrcaBot
                 {
                     ImageURL = attachment;
                 }
-            }
-
-            guildMessageService.AddQuote(this);
-        }
-
-        private static ulong GetNextQuoteId(ulong guildId)
-        {
-            GuildBotVarCollection guildConfig = BotVarManager.GetGuildBotVarCollection(guildId);
-            if (!guildConfig.TryGetBotVar("nextquoteid", out ulong value))
-            {
-                value = 0;
-            }
-            guildConfig.SetBotVar("nextquoteid", value + 1);
-            return value;
-        }
-
-        private void SecureNulls()
-        {
-            if (ChannelName == null)
-            {
-                ChannelName = "Unknown Channel";
-            }
-            if (MessageContent == null)
-            {
-                MessageContent = string.Empty;
-            }
-            if (AuthorName == null)
-            {
-                AuthorName = "Unkown Author";
             }
         }
 

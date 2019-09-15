@@ -35,31 +35,31 @@ namespace OrcaBot.Commands
 
         protected override Task<ArgumentParseResult> ParseArguments(IDMCommandContext context)
         {
-            SystemName = context.Argument;
+            SystemName = context.Arguments.First;
 
-            if (context.ArgumentCount == 1)
+            if (context.Arguments.TotalCount == 1)
             {
                 Mode = CommandMode.Default;
                 JumpRange = 20;
                 return Task.FromResult(ArgumentParseResult.SuccessfullParse);
             }
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            if (!Enum.TryParse(context.Argument, out Mode))
+            if (!Enum.TryParse(context.Arguments.First, out Mode))
             {
                 return Task.FromResult(new ArgumentParseResult(Arguments[1]));
             }
 
-            if (context.ArgumentCount == 2)
+            if (context.Arguments.TotalCount == 2)
             {
                 JumpRange = 20;
                 return Task.FromResult(ArgumentParseResult.SuccessfullParse);
             }
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            if (!double.TryParse(context.Argument, out JumpRange))
+            if (!double.TryParse(context.Arguments.First, out JumpRange))
             {
                 return Task.FromResult(new ArgumentParseResult(Arguments[2]));
             }

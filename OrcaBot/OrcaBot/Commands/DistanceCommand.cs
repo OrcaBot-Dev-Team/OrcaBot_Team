@@ -21,7 +21,6 @@ namespace OrcaBot.Commands
         {
             new Argument("System 1", "The starting point of the distance measurement"),
             new Argument("System 2", "The end point of the distance measurement"),
-            new Argument("Options", "Options", optional:true)
         };
         public override bool RunInAsyncMode => true;
 
@@ -36,21 +35,21 @@ namespace OrcaBot.Commands
 
         protected override Task<ArgumentParseResult> ParseArguments(IDMCommandContext context)
         {
-            SystemA_name = context.Argument;
+            SystemA_name = context.Arguments.First;
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            SystemB_name = context.Argument;
+            SystemB_name = context.Arguments.First;
 
-            if (context.ArgumentCount == 2)
+            if (context.Arguments.TotalCount == 2)
             {
                 printJson = false;
             }
             else
             {
-                context.ArgPointer++;
+                context.Arguments.Index++;
 
-                printJson = context.Argument.ToLower().Contains("json");
+                printJson = context.Arguments.First.ToLower().Contains("json");
             }
             return Task.FromResult(ArgumentParseResult.SuccessfullParse);
         }

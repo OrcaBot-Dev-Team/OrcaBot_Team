@@ -1,10 +1,15 @@
-﻿using BotCoreNET.BotVars;
+﻿using BotCoreNET;
+using BotCoreNET.BotVars;
 using BotCoreNET.Helpers;
+using Discord;
+using Discord.WebSocket;
 using JSON;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace OrcaBot
 {
@@ -14,43 +19,94 @@ namespace OrcaBot
         private const string JSON_QUOTEID = "QuoteId";
         private const string JSON_MACROS = "Macros";
         #region static
+
         private static readonly Dictionary<ulong, StoredMessagesService> storedMessages = new Dictionary<ulong, StoredMessagesService>();
 
         public static void OnBotVarSetup()
         {
-            GuildBotVarCollection.SubscribeToBotVarUpdateStaticEvent(OnGuildBotVarUpdated, "quotes");
-        }
-
-        private static void OnGuildBotVarUpdated(ulong guildId, BotVar botVar)
-        {
-            if (botVar.IsGeneric)
-            {
-                if (storedMessages.TryGetValue(guildId, out StoredMessagesService messagesService))
-                {
-                    messagesService.ApplyJSON(botVar.Generic);
-                }
-                else
-                {
-                    if (botVar.TryConvert(out messagesService))
-                    {
-                        storedMessages.Add(guildId, messagesService);
-                    }
-                }
-            }
+            BotVarManager.SubscribeToBotVarUpdateEvent(OnBotVarUpdated, "storedmsgsprefix");
         }
 
         public static StoredMessagesService GetMessagesService(ulong guildId)
         {
             if (!storedMessages.TryGetValue(guildId, out StoredMessagesService messagesService))
             {
-                GuildBotVarCollection guildBotVars = BotVarManager.GetGuildBotVarCollection(guildId);
-                if (!guildBotVars.TryGetBotVar("storedMessages", out JSONContainer storedMessagesJSON))
-                {
-                    messagesService = new StoredMessagesService(guildId);
-                    messagesService.ApplyJSON(storedMessagesJSON);
-                }
+                messagesService = new StoredMessagesService(guildId);
+                messagesService.AttemptLoad();
             }
             return messagesService;
+        }
+
+        
+
+        public static bool IsValidMacroName(string name)
+        {
+            foreach (char c in name)
+            {
+                if (!AllowedMacroNameCharacters.Contains(c))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private const string AllowedMacroNameCharacters = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ-_";
+
+        #endregion
+        #region messagehandling
+
+        internal static string storedMessagePrefix = "?";
+
+        private static void OnBotVarUpdated(BotVar botvar)
+        {
+            if (!string.IsNullOrWhiteSpace(botvar.String))
+            {
+                storedMessagePrefix = botvar.String;
+            }
+        }
+
+        internal static Task Client_MessageReceived(SocketMessage arg)
+        {
+            SocketUserMessage userMessage = arg as SocketUserMessage;
+
+            if (userMessage != null)
+            {
+                SocketTextChannel guildChannel = userMessage.Channel as SocketTextChannel;
+
+                if (userMessage.Content.StartsWith(storedMessagePrefix) && userMessage.Content.Length > storedMessagePrefix.Length && guildChannel != null)
+                {
+                    StoredMessagesService messagesService = GetMessagesService(guildChannel.Guild.Id);
+
+                    string msg = userMessage.Content.Substring(storedMessagePrefix.Length);
+
+                    if (messagesService.QuoteCount > 0)
+                    {
+                        if (int.TryParse(msg, out int quoteId))
+                        {
+                            if (quoteId > 0)
+                            {
+                                if (messagesService.TryGetQuote(quoteId, out Quote quote))
+                                {
+                                    return userMessage.Channel.SendEmbedAsync(quote);
+                                }
+                            }
+                        }
+                    }
+
+                    if (messagesService.TryGetMacro(msg, out Macro macro))
+                    {
+                        if (!macro.Build(out EmbedBuilder embed, out string messageContent, out string error))
+                        {
+                            return userMessage.Channel.SendEmbedAsync($"Macro corrupted! `{error}`", true);
+                        }
+                        return userMessage.Channel.SendMessageAsync(text: messageContent, embed: embed.Build());
+                    }
+
+                    return userMessage.AddReactionAsync(UnicodeEmoteService.Question);
+                }
+            }
+            return Task.CompletedTask;
         }
 
         #endregion
@@ -69,6 +125,8 @@ namespace OrcaBot
 
         public IReadOnlyCollection<Macro> Macros => macros.Values;
         public IReadOnlyCollection<Quote> Quotes => quotes.Values;
+        public int QuoteCount => quotes.Count;
+        public int MacroCount => macros.Count;
 
         private int QuoteId;
 
@@ -157,16 +215,32 @@ namespace OrcaBot
         {
             quote.QuoteId = GetNextQuoteId();
             quotes.Add(quote.QuoteId, quote);
+            Save();
         }
 
         public bool RemoveQuote(Quote quote)
         {
-            return quotes.Remove(quote.QuoteId);
+            return RemoveQuote(quote.QuoteId);
         }
 
         public bool RemoveQuote(int quoteId)
         {
-            return quotes.Remove(quoteId);
+            if (quotes.Remove(quoteId))
+            {
+                Save();
+                return true;
+            }
+            return false;
+        }
+
+        public bool HasQuote(int quoteId)
+        {
+            return quotes.ContainsKey(quoteId);
+        }
+
+        public bool HasQuote(ulong messageId)
+        {
+            return quotes.Values.Any(quote => { return quote.MessageId == messageId; });
         }
 
         public bool TryGetMacro(string macroId, out Macro macro)
@@ -177,18 +251,34 @@ namespace OrcaBot
         public void SetMacro(Macro macro)
         {
             macros[macro.Identifier] = macro;
+            Save();
         }
 
         public bool RemoveMacro(Macro macro)
         {
-            return macros.Remove(macro.Identifier);
+            return RemoveMacro(macro.Identifier);
         }
 
         public bool RemoveMacro(string macroId)
         {
             if (macros.Remove(macroId))
             {
+                Save();
+                return true;
+            }
+            return false;
+        }
 
+        private void Save()
+        {
+            guildBotVars.SetBotVar("storedMessages", ToJSON());
+        }
+
+        private void AttemptLoad()
+        {
+            if (guildBotVars.TryGetBotVar("storedMessages", out JSONContainer storedMessagesJSON))
+            {
+                ApplyJSON(storedMessagesJSON);
             }
         }
 

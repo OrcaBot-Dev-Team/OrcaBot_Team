@@ -21,8 +21,7 @@ namespace OrcaBot.Commands
         public override string Remarks => "This command uses [EDSM](https://www.edsm.net/en/api-v1) api";
         public override Argument[] Arguments => new Argument[]
         {
-            new Argument("System Name", "The system you want to pull info about"),
-            new Argument("Options", "Options", optional:true)
+            new Argument("System Name", "The system you want to pull info about")
         };
         public override bool RunInAsyncMode => true;
 
@@ -38,9 +37,9 @@ namespace OrcaBot.Commands
 
         protected override Task<ArgumentParseResult> ParseArguments(IDMCommandContext context)
         {
-            systemName = context.Argument;
+            systemName = context.Arguments.First;
 
-            if (context.ArgumentCount == 1)
+            if (context.Arguments.TotalCount == 1)
             {
                 webRequests = false;
                 printJson = false;
@@ -48,11 +47,11 @@ namespace OrcaBot.Commands
                 return Task.FromResult(ArgumentParseResult.SuccessfullParse);
             }
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            webRequests = context.Argument.Contains("webrequests");
-            printJson = context.Argument.Contains("json");
-            listAllStations = context.Argument.Contains("list");
+            webRequests = context.Arguments.First.Contains("webrequests");
+            printJson = context.Arguments.First.Contains("json");
+            listAllStations = context.Arguments.First.Contains("list");
 
             return Task.FromResult(ArgumentParseResult.SuccessfullParse);
         }

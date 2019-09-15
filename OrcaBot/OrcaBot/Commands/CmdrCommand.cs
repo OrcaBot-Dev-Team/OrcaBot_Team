@@ -20,7 +20,6 @@ namespace OrcaBot.Commands
         public override Argument[] Arguments => new Argument[]
         {
             new Argument("Commander Name", "A commander name to search by"),
-            new Argument("Options", "Available are: `json`", optional:true)
         };
         public override bool RunInAsyncMode => true;
 
@@ -35,17 +34,17 @@ namespace OrcaBot.Commands
         protected override Task<ArgumentParseResult> ParseArguments(IDMCommandContext context)
         {
 
-            cmdrName = context.Argument;
+            cmdrName = context.Arguments.First;
 
-            if (context.ArgumentCount == 1)
+            if (context.Arguments.TotalCount == 1)
             {
                 printJson = false;
                 return Task.FromResult(ArgumentParseResult.SuccessfullParse);
             }
 
-            context.ArgPointer++;
+            context.Arguments.Index++;
 
-            printJson = context.Argument.Contains("json");
+            printJson = context.Arguments.First.Contains("json");
 
             return Task.FromResult(ArgumentParseResult.SuccessfullParse);
         }

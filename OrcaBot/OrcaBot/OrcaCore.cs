@@ -11,20 +11,20 @@ namespace OrcaBot
         static void Main(string[] args)
         {
             BotCore.OnBotVarDefaultSetup += WebRequestService.OnBotVarSetup;
-            BotCore.OnBotVarDefaultSetup += Macro.OnBotVarSetup;
+            BotCore.OnBotVarDefaultSetup += StoredMessagesService.OnBotVarSetup;
             CommandCollection elitecollection = new CommandCollection("Elite", "Commands to retrieve info on Elite:Dangerous");
             new SystemCommand("system", elitecollection);
             new CmdrCommand("cmdr", elitecollection);
             new DistanceCommand("distance", elitecollection);
             //new BaseCommand("base", elitecollection);
             CommandCollection quotecollection = new CommandCollection("Quotes", "Commands for adding and viewing quotes");
-            new AddQuoteCommand("quote add", quotecollection);
+            new AddQuoteCommand("quote-add", quotecollection);
             new GetQuotecommand("quote", quotecollection);
             CommandCollection macrocollection = new CommandCollection("Macros", "Commands for adding and listing macros");
             new SetMacroCommand("macro", macrocollection);
-            new ListMacrosCommand("macrolist", macrocollection);
+            new ListMacrosCommand("macro-list", macrocollection);
 
-            BotCore.Client.MessageReceived += Macro.Client_MessageReceived;
+            BotCore.Client.MessageReceived += StoredMessagesService.Client_MessageReceived;
 
             EmbedBuilder aboutEmbed = new EmbedBuilder()
             {
@@ -45,7 +45,7 @@ namespace OrcaBot
                 $"\u23F5 [EDAssets](https://edassets.org/#/) for Station Icons"
             };
 
-            BotCore.Run(Environment.CurrentDirectory + "/BotCore/", aboutEmbed:aboutEmbed);
+            BotCore.Run(Environment.CurrentDirectory + "/BotCore/", new CustomCommandParser(), aboutEmbed:aboutEmbed);
         }
     }
 }
