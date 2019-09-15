@@ -11,8 +11,4 @@
     <PackageReference Include="Discord.Net" Version="2.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\BotCore\BotCore\BotCore\BotCoreNET.csproj" />
-  </ItemGroup>
-
 </Project>
