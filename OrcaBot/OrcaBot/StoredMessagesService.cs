@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace OrcaBot
@@ -40,18 +41,10 @@ namespace OrcaBot
         
 
         public static bool IsValidMacroName(string name)
-        {
-            foreach (char c in name)
-            {
-                if (!AllowedMacroNameCharacters.Contains(c))
-                {
-                    return false;
-                }
-            }
-            return true;
+        {   
+            return new Regex(@"[a-zA-Z_\-]+").Matches(name).Count == 1;
         }
 
-        private const string AllowedMacroNameCharacters = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ-_";
 
         #endregion
         #region messagehandling
