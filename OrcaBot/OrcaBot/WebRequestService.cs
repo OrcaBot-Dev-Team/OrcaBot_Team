@@ -18,10 +18,10 @@ namespace OrcaBot
 
         internal static void OnBotVarSetup()
         {
-            BotVarManager.SubscribeToBotVarUpdateEvent(OnBotVarUpdated, "inara_appname", "inara_apikey");
+            BotVarManager.GlobalBotVars.SubscribeToBotVarUpdateEvent(OnBotVarUpdated, "inara_appname", "inara_apikey");
         }
 
-        private static void OnBotVarUpdated(BotVar var)
+        private static void OnBotVarUpdated(ulong guildId, BotVar var)
         {
             if (var.IsString)
             {

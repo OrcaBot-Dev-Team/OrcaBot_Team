@@ -25,7 +25,7 @@ namespace OrcaBot
 
         public static void OnBotVarSetup()
         {
-            BotVarManager.SubscribeToBotVarUpdateEvent(OnBotVarUpdated, "storedmsgsprefix");
+            BotVarManager.GlobalBotVars.SubscribeToBotVarUpdateEvent(OnBotVarUpdated, "storedmsgsprefix");
         }
 
         public static StoredMessagesService GetMessagesService(ulong guildId)
@@ -51,7 +51,7 @@ namespace OrcaBot
 
         internal static string storedMessagePrefix = "?";
 
-        private static void OnBotVarUpdated(BotVar botvar)
+        private static void OnBotVarUpdated(ulong guildId, BotVar botvar)
         {
             if (!string.IsNullOrWhiteSpace(botvar.String))
             {
@@ -105,7 +105,7 @@ namespace OrcaBot
         #endregion
         #region instance
 
-        private readonly GuildBotVarCollection guildBotVars;
+        private readonly BotVarCollection guildBotVars;
 
         public StoredMessagesService(ulong guildId)
         {
