@@ -4,11 +4,8 @@ using BotCoreNET.Helpers;
 using Discord;
 using Discord.WebSocket;
 using JSON;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -201,7 +198,7 @@ namespace OrcaBot
             }
             List<Quote> quoteList = new List<Quote>(quotes.Values);
 
-            return quoteList[BotCoreNET.Helpers.Macros.Rand.Next(quoteList.Count)];
+            return quoteList[BotCoreNET.Macros.Rand.Next(quoteList.Count)];
         }
 
         public void AddQuote(Quote quote)

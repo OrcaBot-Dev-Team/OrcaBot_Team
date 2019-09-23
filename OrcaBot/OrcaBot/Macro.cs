@@ -1,14 +1,8 @@
-﻿using BotCoreNET;
-using BotCoreNET.BotVars;
+﻿using BotCoreNET.BotVars;
 using BotCoreNET.CommandHandling;
 using BotCoreNET.Helpers;
 using Discord;
-using Discord.WebSocket;
 using JSON;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OrcaBot
 {

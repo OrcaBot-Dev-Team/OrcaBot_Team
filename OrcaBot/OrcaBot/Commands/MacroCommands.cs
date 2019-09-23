@@ -1,8 +1,5 @@
 ﻿using BotCoreNET.CommandHandling;
-using BotCoreNET.BotVars;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using BotCoreNET;

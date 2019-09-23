@@ -1,8 +1,4 @@
-﻿using BotCoreNET.BotVars;
-using BotCoreNET.CommandHandling;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using BotCoreNET.CommandHandling;
 
 namespace OrcaBot
 {
@@ -13,7 +9,7 @@ namespace OrcaBot
             return $"{Prefix}{commandidentifier}";
         }
 
-        public override string CommandSyntax(string commandidentifier, Argument[] arguments)
+        public override string CommandSyntax(string commandidentifier, params Argument[] arguments)
         {
             if (arguments.Length == 0)
             {
@@ -21,58 +17,43 @@ namespace OrcaBot
             }
             else
             {
-                return $"{Prefix}{commandidentifier}: {string.Join(", ", arguments, 0, arguments.Length)}";
+                return $"{Prefix}{commandidentifier}: {string.Join(", ", arguments as object[])}";
+            }
+        }
+
+        public override string CommandSyntax(string commandidentifier, params string[] arguments)
+        {
+            if (arguments.Length == 0)
+            {
+                return $"{Prefix}{commandidentifier}";
+            }
+            else
+            {
+                return $"{Prefix}{commandidentifier}: {string.Join(", ", arguments as object[])}";
             }
         }
 
         public override ICommandContext ParseCommand(IMessageContext dmContext)
         {
             string commandIdentifier = null;
-            string argumentSection = null;
+            string argumentSection;
             IndexArray<string> arguments;
             Command interpretedCommand = null;
             CommandSearchResult commandSearch;
 
-            string message = dmContext.Content.Substring(Prefix.Length);
-            string expectedCommandIdentifierSubsection = message.Substring(0, message.Length > 50 ? 50 : message.Length); // Generate a section of max 50 characters to parse the best command identifier match from
-            List<string> possibleCommandIdentifiers = new List<string>(new string[] { expectedCommandIdentifierSubsection });
+            string message = dmContext.Content.Substring(Prefix.Length).TrimStart();
 
-            for (int i = expectedCommandIdentifierSubsection.Length - 1; i >= 0; i--)
-            {
-                if (expectedCommandIdentifierSubsection[i] == ' ')
-                {
-                    possibleCommandIdentifiers.Add(expectedCommandIdentifierSubsection.Substring(0, i));
-                }
-            }
+            int firstSpace = message.IndexOf(' ');
 
-            if (possibleCommandIdentifiers.Count == 0)
+            if (firstSpace == -1)
             {
-                return new CommandContext(null, CommandSearchResult.NoMatch, message, new IndexArray<string>(0));
+                commandIdentifier = message.Trim();
+                commandSearch = CommandCollection.TryFindCommand(commandIdentifier, 0, out interpretedCommand);
+                return new CommandContext(interpretedCommand, commandSearch, string.Empty, new IndexArray<string>(0));
             }
-
-            bool foundCommand = false;
-            foreach (string possibleCommandIdentifier in possibleCommandIdentifiers)
-            {
-                if (CommandCollection.TryFindCommand(possibleCommandIdentifier, out interpretedCommand))
-                {
-                    foundCommand = true;
-                    commandIdentifier = possibleCommandIdentifier;
-                    if (commandIdentifier.Length < message.Length)
-                    {
-                        argumentSection = message.Substring(commandIdentifier.Length);
-                    }
-                    else
-                    {
-                        argumentSection = string.Empty;
-                    }
-                    break;
-                }
-            }
-
-            if (!foundCommand)
-            {
-                return new CommandContext(null, CommandSearchResult.NoMatch, message, new IndexArray<string>(0));
-            }
+            
+            commandIdentifier = message.Substring(0, firstSpace).Trim();
+            argumentSection = message.Substring(firstSpace + 1);
 
             int argcnt;
             if (string.IsNullOrEmpty(argumentSection))
@@ -129,7 +110,7 @@ namespace OrcaBot
                 }
             }
 
-            commandSearch = CommandCollection.TryFindCommand(commandIdentifier, argcnt, out _);
+            commandSearch = CommandCollection.TryFindCommand(commandIdentifier, argcnt, out interpretedCommand);
 
             return new CommandContext(interpretedCommand, commandSearch, argumentSection, arguments);
         }

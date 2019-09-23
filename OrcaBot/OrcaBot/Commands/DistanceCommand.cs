@@ -1,13 +1,9 @@
 ﻿using BotCoreNET;
 using BotCoreNET.CommandHandling;
-using BotCoreNET.Helpers;
 using Discord;
 using JSON;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OrcaBot.Commands
