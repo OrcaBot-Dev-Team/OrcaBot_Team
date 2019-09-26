@@ -37,9 +37,7 @@ namespace OrcaBot
 
         public bool Build(out EmbedBuilder embed, out string messageContent, out string error)
         {
-            ArgumentParseResult parseResult = EmbedHelper.TryParseEmbedFromJSONObject(JSON, out embed, out messageContent);
-            error = parseResult.Message;
-            return parseResult.Success;
+            return EmbedHelper.TryGetMessageFromJSONObject(JSON, out embed, out messageContent, out error);
         }
     }
 }

@@ -84,7 +84,7 @@ namespace OrcaBot.Commands
                         return new ArgumentParseResult(Arguments[1]);
                     }
 
-                    EmbedHelper.GetJSONFromUserMessage(message, out json);
+                    json = EmbedHelper.GetJSONFromUserMessage(message);
                     SelectedMacro = new Macro(MacroIdentifier, json);
                 }
                 else
